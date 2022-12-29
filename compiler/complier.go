@@ -18,10 +18,6 @@ func New() *Compiler {
 	}
 }
 
-func (c *Compiler) Compile(node ast.Node) error {
-	return nil
-}
-
 func (c *Compiler) Bytecode() *Bytecode {
 	return &Bytecode{
 		Instructions: c.instructions,
@@ -59,7 +55,26 @@ func (c *Compiler) Compile(node ast.Node) error {
 			return err
 		}
 	case *ast.IntegerLiteral:
+		interger := &object.Integer{Value: node.Value}
+		c.emit(code.OpConstant, c.addConstant(interger))
 		// TODO: What now?!
 	}
 	return nil
+}
+
+func (c *Compiler) addConstant(obj object.Object) int {
+	c.constants = append(c.constants, obj)
+	return len(c.constants) - 1
+}
+
+func (c *Compiler) emit(op code.Opcode, operands ...int) int {
+	ins := code.Make(op, operands...)
+	pos := c.addInstruction(ins)
+	return pos
+}
+
+func (c *Compiler) addInstruction(ins []byte) int {
+	posNewInstruction := len(c.instructions)
+	c.instructions = append(c.instructions, ins...)
+	return posNewInstruction
 }
